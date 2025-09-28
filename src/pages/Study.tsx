@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, BookOpen, CheckCircle } from 'lucide-react';
 import { Deck, Flashcard, DifficultyRating } from '@/types/flashcard';
 import { getNewCards } from '@/lib/spacedRepetition';
-import FlashCard from '@/components/FlashCard';
+import EnhancedFlashCard from '@/components/EnhancedFlashCard';
 import { toast } from '@/hooks/use-toast';
 import { getDeck, getCardsForReview, updateCardReview, createStudySession } from '@/lib/supabaseUtils';
 
@@ -207,8 +207,8 @@ const Study = () => {
         </div>
       </div>
 
-      {/* Flashcard */}
-      <FlashCard
+      {/* Enhanced Flashcard with Spaced Repetition */}
+      <EnhancedFlashCard
         card={currentCard}
         onRate={handleCardRate}
         isFlipped={isFlipped}

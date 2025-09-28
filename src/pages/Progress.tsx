@@ -8,6 +8,7 @@ import { Deck, UserProgress } from '@/types/flashcard';
 import { getDeckStats } from '@/lib/spacedRepetition';
 import { getDecks, getUserProgress } from '@/lib/supabaseUtils';
 import { toast } from '@/hooks/use-toast';
+import SpacedRepetitionDashboard from '@/components/SpacedRepetitionDashboard';
 
 const Progress = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -134,6 +135,7 @@ const Progress = () => {
       <Tabs defaultValue="decks" className="space-y-4">
         <TabsList>
           <TabsTrigger value="decks">Deck Progress</TabsTrigger>
+          <TabsTrigger value="spaced-repetition">Spaced Repetition</TabsTrigger>
           <TabsTrigger value="calendar">Study Calendar</TabsTrigger>
         </TabsList>
 
@@ -202,6 +204,10 @@ const Progress = () => {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="spaced-repetition">
+          <SpacedRepetitionDashboard />
         </TabsContent>
 
         <TabsContent value="calendar">

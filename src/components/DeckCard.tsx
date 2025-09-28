@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Clock, Target } from 'lucide-react';
+import { BookOpen, Clock, Target, AlertTriangle } from 'lucide-react';
 import { Deck } from '@/types/flashcard';
-import { getDeckStats } from '@/lib/spacedRepetition';
+import { getDeckStats, isCardOverdue } from '@/lib/spacedRepetition';
 import { Link } from 'react-router-dom';
 import AddVocabCard from './AddVocabCard';
 
@@ -17,17 +17,28 @@ const DeckCard = ({ deck, onDeckUpdate }: DeckCardProps) => {
   const progressPercent = deck.cards.length > 0 
     ? Math.round((stats.mastered / deck.cards.length) * 100) 
     : 0;
+  
+  const overdueCards = deck.cards.filter(isCardOverdue);
+  const hasOverdue = overdueCards.length > 0;
 
   return (
     <Card className="hover:shadow-lg transition-shadow animate-slide-up">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <CardTitle className="text-lg line-clamp-1">{deck.name}</CardTitle>
-          {stats.dueToday > 0 && (
-            <Badge variant="destructive" className="ml-2">
-              {stats.dueToday} due
-            </Badge>
-          )}
+          <div className="flex gap-2 ml-2">
+            {hasOverdue && (
+              <Badge variant="destructive" className="gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                {overdueCards.length} overdue
+              </Badge>
+            )}
+            {stats.dueToday > 0 && !hasOverdue && (
+              <Badge variant="secondary">
+                {stats.dueToday} due
+              </Badge>
+            )}
+          </div>
         </div>
         {deck.description && (
           <p className="text-sm text-muted-foreground line-clamp-2">
