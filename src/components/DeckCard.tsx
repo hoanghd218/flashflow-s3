@@ -86,7 +86,14 @@ const DeckCard = ({ deck, onDeckUpdate }: DeckCardProps) => {
             </Link>
           </Button>
           
-          <AddVocabCard deck={deck} onCardAdded={onDeckUpdate || (() => {})} />
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm" className="flex-1">
+              <Link to={`/decks/${deck.id}`}>
+                View Cards
+              </Link>
+            </Button>
+            <AddVocabCard deck={deck} onCardAdded={onDeckUpdate || (() => {})} />
+          </div>
         </div>
       </CardContent>
     </Card>

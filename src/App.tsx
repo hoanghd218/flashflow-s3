@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Home from "./pages/Home";
 import Decks from "./pages/Decks";
+import DeckDetails from "./pages/DeckDetails";
 import Study from "./pages/Study";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
@@ -28,6 +29,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/decks" element={<Decks />} />
+                  <Route path="/decks/:deckId" element={<DeckDetails />} />
                   <Route path="/study/:deckId?" element={<Study />} />
                   <Route path="/progress" element={<Progress />} />
                   <Route path="/settings" element={<Settings />} />
