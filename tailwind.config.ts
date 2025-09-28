@@ -22,10 +22,15 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -46,6 +51,14 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+          front: "hsl(var(--card-front))",
+          back: "hsl(var(--card-back))",
+        },
+        learning: {
+          new: "hsl(var(--new-card))",
+          learning: "hsl(var(--learning))",
+          review: "hsl(var(--review))",
+          mastered: "hsl(var(--mastered))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -80,10 +93,26 @@ export default {
             height: "0",
           },
         },
+        "flip": {
+          "0%": { transform: "rotateY(0deg)" },
+          "50%": { transform: "rotateY(-90deg)" },
+          "100%": { transform: "rotateY(0deg)" },
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "progress": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(0%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "flip": "flip 0.6s ease-in-out",
+        "slide-up": "slide-up 0.4s ease-out",
+        "progress": "progress 0.3s ease-out",
       },
     },
   },
