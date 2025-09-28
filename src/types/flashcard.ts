@@ -2,9 +2,16 @@ export interface Flashcard {
   id: string;
   front: string;
   back: string;
+  // Enhanced multilingual support
+  englishDefinition?: string;
+  vietnameseDefinition?: string;
   example?: string;
-  imageUrl?: string;
+  exampleTranslation?: string;
+  // Media files
+  frontImageUrl?: string;
+  backImageUrl?: string;
   audioUrl?: string;
+  pronunciationText?: string;
   // Spaced repetition data
   interval: number;
   ease: number;

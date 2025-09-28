@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { RotateCcw, Volume2 } from 'lucide-react';
 import { Flashcard, DifficultyRating } from '@/types/flashcard';
 import { cn } from '@/lib/utils';
+import fatherImage from '@/assets/father.jpg';
+import thankYouImage from '@/assets/thank-you.jpg';
+import goodbyeImage from '@/assets/goodbye.jpg';
 
 interface FlashCardProps {
   card: Flashcard;
@@ -14,6 +17,21 @@ interface FlashCardProps {
 
 const FlashCard = ({ card, onRate, isFlipped, onFlip }: FlashCardProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // Helper function to get the correct image
+  const getImageSrc = (imageUrl?: string) => {
+    if (!imageUrl) return undefined;
+    switch (imageUrl) {
+      case '/src/assets/father.jpg':
+        return fatherImage;
+      case '/src/assets/thank-you.jpg':
+        return thankYouImage;
+      case '/src/assets/goodbye.jpg':
+        return goodbyeImage;
+      default:
+        return imageUrl;
+    }
+  };
 
   const handleFlip = () => {
     if (isAnimating) return;
@@ -47,11 +65,11 @@ const FlashCard = ({ card, onRate, isFlipped, onFlip }: FlashCardProps) => {
               <div className="text-2xl md:text-3xl font-medium leading-relaxed">
                 {card.front}
               </div>
-              {card.imageUrl && (
+              {card.frontImageUrl && (
                 <img 
-                  src={card.imageUrl} 
+                  src={getImageSrc(card.frontImageUrl)} 
                   alt="Card visual aid"
-                  className="max-w-full max-h-48 object-contain rounded-lg"
+                  className="max-w-full max-h-48 object-contain rounded-lg shadow-md"
                 />
               )}
               <p className="text-sm text-muted-foreground">
@@ -60,24 +78,62 @@ const FlashCard = ({ card, onRate, isFlipped, onFlip }: FlashCardProps) => {
             </div>
           ) : (
             // Back of card
-            <div className="space-y-6 w-full">
+            <div className="space-y-6 w-full max-w-lg">
+              {/* Main Translation */}
               <div className="text-2xl md:text-3xl font-medium leading-relaxed text-primary">
                 {card.back}
               </div>
-              
-              {card.example && (
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Example:</p>
-                  <p className="text-base italic">{card.example}</p>
+
+              {/* Back Image */}
+              {card.backImageUrl && (
+                <img 
+                  src={getImageSrc(card.backImageUrl)} 
+                  alt="Word illustration"
+                  className="max-w-full max-h-40 object-contain rounded-lg shadow-md mx-auto"
+                />
+              )}
+
+              {/* English Definition */}
+              {card.englishDefinition && (
+                <div className="p-4 bg-muted rounded-lg text-left">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">📖 English Definition:</p>
+                  <p className="text-sm">{card.englishDefinition}</p>
                 </div>
               )}
 
-              {card.audioUrl && (
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Volume2 className="w-4 h-4" />
-                  Play Audio
-                </Button>
+              {/* Vietnamese Definition */}
+              {card.vietnameseDefinition && (
+                <div className="p-4 bg-accent rounded-lg text-left">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">🇻🇳 Nghĩa tiếng Việt:</p>
+                  <p className="text-sm">{card.vietnameseDefinition}</p>
+                </div>
               )}
+
+              {/* Example Sentence */}
+              {card.example && (
+                <div className="p-4 bg-card-front rounded-lg text-left">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">💭 Example:</p>
+                  <p className="text-base italic mb-2">{card.example}</p>
+                  {card.exampleTranslation && (
+                    <p className="text-sm text-muted-foreground">{card.exampleTranslation}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Pronunciation */}
+              <div className="flex items-center justify-center gap-3">
+                {card.pronunciationText && (
+                  <div className="text-sm text-muted-foreground font-mono">
+                    /{card.pronunciationText}/
+                  </div>
+                )}
+                {card.audioUrl && (
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Volume2 className="w-4 h-4" />
+                    Pronunciation
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
