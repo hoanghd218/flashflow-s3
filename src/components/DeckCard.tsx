@@ -5,12 +5,14 @@ import { BookOpen, Clock, Target } from 'lucide-react';
 import { Deck } from '@/types/flashcard';
 import { getDeckStats } from '@/lib/spacedRepetition';
 import { Link } from 'react-router-dom';
+import AddVocabCard from './AddVocabCard';
 
 interface DeckCardProps {
   deck: Deck;
+  onDeckUpdate?: () => void;
 }
 
-const DeckCard = ({ deck }: DeckCardProps) => {
+const DeckCard = ({ deck, onDeckUpdate }: DeckCardProps) => {
   const stats = getDeckStats(deck.cards);
   const progressPercent = deck.cards.length > 0 
     ? Math.round((stats.mastered / deck.cards.length) * 100) 
@@ -76,12 +78,16 @@ const DeckCard = ({ deck }: DeckCardProps) => {
           </div>
         </div>
 
-        {/* Action Button */}
-        <Button asChild className="w-full" variant={stats.dueToday > 0 ? "default" : "secondary"}>
-          <Link to={`/study/${deck.id}`}>
-            {stats.dueToday > 0 ? `Study ${stats.dueToday} cards` : 'Continue studying'}
-          </Link>
-        </Button>
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          <Button asChild className="w-full" variant={stats.dueToday > 0 ? "default" : "secondary"}>
+            <Link to={`/study/${deck.id}`}>
+              {stats.dueToday > 0 ? `Study ${stats.dueToday} cards` : 'Continue studying'}
+            </Link>
+          </Button>
+          
+          <AddVocabCard deck={deck} onCardAdded={onDeckUpdate || (() => {})} />
+        </div>
       </CardContent>
     </Card>
   );

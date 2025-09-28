@@ -85,6 +85,15 @@ const Decks = () => {
     loadDecks();
   }, []);
 
+  const refreshDecks = async () => {
+    try {
+      const decksData = await getDecks();
+      setDecks(decksData);
+    } catch (error) {
+      console.error('Error refreshing decks:', error);
+    }
+  };
+
   const filteredDecks = decks.filter(deck =>
     deck.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     deck.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -197,7 +206,7 @@ const Decks = () => {
       {filteredDecks.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDecks.map((deck) => (
-            <DeckCard key={deck.id} deck={deck} />
+            <DeckCard key={deck.id} deck={deck} onDeckUpdate={refreshDecks} />
           ))}
         </div>
       ) : searchTerm ? (
