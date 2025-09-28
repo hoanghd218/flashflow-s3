@@ -5,9 +5,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, BookOpen, CheckCircle } from 'lucide-react';
 import { Deck, Flashcard, DifficultyRating } from '@/types/flashcard';
-import { getCardsForReview, getNewCards, calculateNextReview } from '@/lib/spacedRepetition';
+import { getNewCards } from '@/lib/spacedRepetition';
 import FlashCard from '@/components/FlashCard';
 import { toast } from '@/hooks/use-toast';
+import { getDeck, getCardsForReview, updateCardReview, createStudySession } from '@/lib/supabaseUtils';
 
 const Study = () => {
   const { deckId } = useParams();
@@ -25,79 +26,107 @@ const Study = () => {
   useEffect(() => {
     if (!deckId) return;
 
-    const savedDecks = localStorage.getItem('flashmind-decks');
-    if (savedDecks) {
-      const decks: Deck[] = JSON.parse(savedDecks);
-      const foundDeck = decks.find(d => d.id === deckId);
-      
-      if (foundDeck) {
-        setDeck(foundDeck);
+    const loadStudySession = async () => {
+      try {
+        const foundDeck = await getDeck(deckId);
         
-        // Get cards for study (due for review + new cards)
-        const reviewCards = getCardsForReview(foundDeck.cards);
-        const newCards = getNewCards(foundDeck.cards, 10);
-        const cardsToStudy = [...reviewCards, ...newCards];
-        
-        if (cardsToStudy.length === 0) {
-          toast({
-            title: "All caught up!",
-            description: "No cards due for review right now. Come back later!",
-          });
+        if (foundDeck) {
+          setDeck(foundDeck);
+          
+          // Get cards for study (due for review + new cards)
+          const reviewCards = await getCardsForReview();
+          const deckReviewCards = reviewCards.filter(card => 
+            foundDeck.cards.some(deckCard => deckCard.id === card.id)
+          );
+          const newCards = getNewCards(foundDeck.cards, 10);
+          const cardsToStudy = [...deckReviewCards, ...newCards];
+          
+          if (cardsToStudy.length === 0) {
+            toast({
+              title: "All caught up!",
+              description: "No cards due for review right now. Come back later!",
+            });
+            navigate('/decks');
+            return;
+          }
+          
+          setStudyCards(cardsToStudy);
+        } else {
           navigate('/decks');
-          return;
         }
-        
-        setStudyCards(cardsToStudy);
-      } else {
+      } catch (error) {
+        console.error('Error loading study session:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load study session",
+          variant: "destructive"
+        });
         navigate('/decks');
       }
-    }
+    };
+
+    loadStudySession();
   }, [deckId, navigate]);
 
-  const handleCardRate = (rating: DifficultyRating) => {
+  const handleCardRate = async (rating: DifficultyRating) => {
     if (!deck || !studyCards[currentCardIndex]) return;
 
     const currentCard = studyCards[currentCardIndex];
-    const updatedCard = { ...currentCard, ...calculateNextReview(currentCard, rating) };
     
-    // Update the deck with the modified card
-    const updatedCards = deck.cards.map(card => 
-      card.id === currentCard.id ? updatedCard : card
-    );
-    const updatedDeck = { ...deck, cards: updatedCards };
-    
-    // Update localStorage
-    const savedDecks = localStorage.getItem('flashmind-decks');
-    if (savedDecks) {
-      const decks: Deck[] = JSON.parse(savedDecks);
-      const updatedDecks = decks.map(d => d.id === deck.id ? updatedDeck : d);
-      localStorage.setItem('flashmind-decks', JSON.stringify(updatedDecks));
-    }
+    try {
+      // Update card in Supabase
+      await updateCardReview(currentCard.id, rating);
 
-    // Update session stats
-    setSessionStats(prev => ({
-      ...prev,
-      studied: prev.studied + 1,
-      correct: prev.correct + (rating === 'good' || rating === 'easy' ? 1 : 0)
-    }));
+      // Update session stats
+      setSessionStats(prev => ({
+        ...prev,
+        studied: prev.studied + 1,
+        correct: prev.correct + (rating === 'good' || rating === 'easy' ? 1 : 0)
+      }));
 
-    // Move to next card or finish session
-    if (currentCardIndex < studyCards.length - 1) {
-      setCurrentCardIndex(prev => prev + 1);
-      setIsFlipped(false);
-    } else {
-      // Session complete
-      finishSession();
+      // Move to next card or finish session
+      if (currentCardIndex < studyCards.length - 1) {
+        setCurrentCardIndex(prev => prev + 1);
+        setIsFlipped(false);
+      } else {
+        // Session complete
+        finishSession();
+      }
+    } catch (error) {
+      console.error('Error updating card:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update card progress",
+        variant: "destructive"
+      });
     }
   };
 
-  const finishSession = () => {
+  const finishSession = async () => {
     const sessionDuration = Math.round((new Date().getTime() - sessionStats.startTime.getTime()) / 60000);
     
-    toast({
-      title: "Session Complete! 🎉",
-      description: `Studied ${sessionStats.studied} cards in ${sessionDuration} minutes`,
-    });
+    try {
+      // Save study session to Supabase
+      if (deck) {
+        await createStudySession({
+          deckId: deck.id,
+          cardsStudied: sessionStats.studied,
+          correctAnswers: sessionStats.correct,
+          timeSpent: sessionDuration
+        });
+      }
+      
+      toast({
+        title: "Session Complete! 🎉",
+        description: `Studied ${sessionStats.studied} cards in ${sessionDuration} minutes`,
+      });
+    } catch (error) {
+      console.error('Error saving study session:', error);
+      toast({
+        title: "Session Complete! 🎉",
+        description: `Studied ${sessionStats.studied} cards in ${sessionDuration} minutes`,
+      });
+    }
     
     navigate('/decks');
   };

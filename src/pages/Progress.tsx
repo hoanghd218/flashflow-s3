@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Target, TrendingUp, BookOpen, Brain, Clock } from 'lucide-react';
 import { Deck, UserProgress } from '@/types/flashcard';
 import { getDeckStats } from '@/lib/spacedRepetition';
+import { getDecks, getUserProgress } from '@/lib/supabaseUtils';
+import { toast } from '@/hooks/use-toast';
 
 const Progress = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -16,17 +18,26 @@ const Progress = () => {
   });
 
   useEffect(() => {
-    // Load decks from localStorage
-    const savedDecks = localStorage.getItem('flashmind-decks');
-    if (savedDecks) {
-      setDecks(JSON.parse(savedDecks));
-    }
+    const loadData = async () => {
+      try {
+        // Load decks from Supabase
+        const decksData = await getDecks();
+        setDecks(decksData);
 
-    // Load user progress (placeholder for now)
-    const savedProgress = localStorage.getItem('flashmind-progress');
-    if (savedProgress) {
-      setUserProgress(JSON.parse(savedProgress));
-    }
+        // Load user progress from Supabase
+        const progressData = await getUserProgress();
+        setUserProgress(progressData);
+      } catch (error) {
+        console.error('Error loading progress data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load progress data",
+          variant: "destructive"
+        });
+      }
+    };
+
+    loadData();
   }, []);
 
   // Calculate overall statistics

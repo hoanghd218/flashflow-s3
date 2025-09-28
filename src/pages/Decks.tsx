@@ -8,6 +8,7 @@ import { Plus, Search } from 'lucide-react';
 import { Deck } from '@/types/flashcard';
 import DeckCard from '@/components/DeckCard';
 import { toast } from '@/hooks/use-toast';
+import { getDecks, createDeck, createFlashcard } from '@/lib/supabaseUtils';
 
 const Decks = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -16,20 +17,22 @@ const Decks = () => {
   const [newDeckName, setNewDeckName] = useState('');
   const [newDeckDescription, setNewDeckDescription] = useState('');
 
-  // Load decks from localStorage on component mount
+  // Load decks from Supabase on component mount
   useEffect(() => {
-    const savedDecks = localStorage.getItem('flashmind-decks');
-    if (savedDecks) {
-      setDecks(JSON.parse(savedDecks));
-    } else {
-      // Create sample deck for demo
-      const sampleDeck: Deck = {
-        id: 'sample-deck',
-        name: 'Spanish Basics',
-        description: 'Essential Spanish words and phrases for beginners',
-        cards: [
-          {
-            id: '1',
+    const loadDecks = async () => {
+      try {
+        const decksData = await getDecks();
+        setDecks(decksData);
+        
+        // Create sample deck if no decks exist
+        if (decksData.length === 0) {
+          const sampleDeck = await createDeck(
+            'Spanish Basics', 
+            'Essential Spanish words and phrases for beginners'
+          );
+          
+          // Add sample cards
+          await createFlashcard(sampleDeck.id, {
             front: 'Father',
             back: 'Padre',
             englishDefinition: 'A male parent; a man who has a child or children',
@@ -38,15 +41,10 @@ const Decks = () => {
             exampleTranslation: 'Bố tôi làm bác sĩ tại bệnh viện.',
             frontImageUrl: '/src/assets/father.jpg',
             backImageUrl: '/src/assets/father.jpg',
-            pronunciationText: 'ˈpɑː.dɹeɪ',
-            interval: 1,
-            ease: 2.5,
-            dueDate: new Date().toISOString(),
-            repetitions: 0,
-            status: 'new'
-          },
-          {
-            id: '2',
+            pronunciationText: 'ˈpɑː.dɹeɪ'
+          });
+          
+          await createFlashcard(sampleDeck.id, {
             front: 'Thank you',
             back: 'Gracias',
             englishDefinition: 'A polite expression used when acknowledging a gift, service, or compliment',
@@ -55,15 +53,10 @@ const Decks = () => {
             exampleTranslation: 'Cảm ơn bạn rất nhiều vì đã giúp đỡ dự án.',
             frontImageUrl: '/src/assets/thank-you.jpg',
             backImageUrl: '/src/assets/thank-you.jpg',
-            pronunciationText: 'ˈɡɾa.θjas',
-            interval: 1,
-            ease: 2.5,
-            dueDate: new Date().toISOString(),
-            repetitions: 0,
-            status: 'new'
-          },
-          {
-            id: '3',
+            pronunciationText: 'ˈɡɾa.θjas'
+          });
+          
+          await createFlashcard(sampleDeck.id, {
             front: 'Goodbye',
             back: 'Adiós',
             englishDefinition: 'A farewell phrase used when parting or at the end of a conversation',
@@ -72,20 +65,24 @@ const Decks = () => {
             exampleTranslation: 'Tạm biệt! Hẹn gặp lại bạn ngày mai tại văn phòng.',
             frontImageUrl: '/src/assets/goodbye.jpg',
             backImageUrl: '/src/assets/goodbye.jpg',
-            pronunciationText: 'a.ˈðjos',
-            interval: 1,
-            ease: 2.5,
-            dueDate: new Date().toISOString(),
-            repetitions: 0,
-            status: 'new'
-          }
-        ],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      setDecks([sampleDeck]);
-      localStorage.setItem('flashmind-decks', JSON.stringify([sampleDeck]));
-    }
+            pronunciationText: 'a.ˈðjos'
+          });
+          
+          // Reload decks
+          const updatedDecks = await getDecks();
+          setDecks(updatedDecks);
+        }
+      } catch (error) {
+        console.error('Error loading decks:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load decks",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    loadDecks();
   }, []);
 
   const filteredDecks = decks.filter(deck =>
@@ -93,7 +90,7 @@ const Decks = () => {
     deck.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const createDeck = () => {
+  const handleCreateDeck = async () => {
     if (!newDeckName.trim()) {
       toast({
         title: "Error",
@@ -103,27 +100,31 @@ const Decks = () => {
       return;
     }
 
-    const newDeck: Deck = {
-      id: `deck-${Date.now()}`,
-      name: newDeckName.trim(),
-      description: newDeckDescription.trim() || undefined,
-      cards: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    try {
+      const newDeck = await createDeck(
+        newDeckName.trim(),
+        newDeckDescription.trim() || undefined
+      );
 
-    const updatedDecks = [...decks, newDeck];
-    setDecks(updatedDecks);
-    localStorage.setItem('flashmind-decks', JSON.stringify(updatedDecks));
+      const updatedDecks = [...decks, newDeck];
+      setDecks(updatedDecks);
 
-    setNewDeckName('');
-    setNewDeckDescription('');
-    setIsCreateDialogOpen(false);
-    
-    toast({
-      title: "Success!",
-      description: `Created deck "${newDeck.name}"`,
-    });
+      setNewDeckName('');
+      setNewDeckDescription('');
+      setIsCreateDialogOpen(false);
+      
+      toast({
+        title: "Success!",
+        description: `Created deck "${newDeck.name}"`,
+      });
+    } catch (error) {
+      console.error('Error creating deck:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create deck",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -166,7 +167,7 @@ const Decks = () => {
                 />
               </div>
               <div className="flex gap-2">
-                <Button onClick={createDeck} className="flex-1">
+                <Button onClick={handleCreateDeck} className="flex-1">
                   Create Deck
                 </Button>
                 <Button 

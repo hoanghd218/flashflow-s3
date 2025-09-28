@@ -14,7 +14,172 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      decks: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          audio_url: string | null
+          back: string
+          back_image_url: string | null
+          created_at: string
+          deck_id: string
+          due_date: string
+          ease: number
+          english_definition: string | null
+          example: string | null
+          example_translation: string | null
+          front: string
+          front_image_url: string | null
+          id: string
+          interval: number
+          last_reviewed: string | null
+          pronunciation_text: string | null
+          repetitions: number
+          status: string
+          updated_at: string
+          vietnamese_definition: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          back: string
+          back_image_url?: string | null
+          created_at?: string
+          deck_id: string
+          due_date?: string
+          ease?: number
+          english_definition?: string | null
+          example?: string | null
+          example_translation?: string | null
+          front: string
+          front_image_url?: string | null
+          id?: string
+          interval?: number
+          last_reviewed?: string | null
+          pronunciation_text?: string | null
+          repetitions?: number
+          status?: string
+          updated_at?: string
+          vietnamese_definition?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          back?: string
+          back_image_url?: string | null
+          created_at?: string
+          deck_id?: string
+          due_date?: string
+          ease?: number
+          english_definition?: string | null
+          example?: string | null
+          example_translation?: string | null
+          front?: string
+          front_image_url?: string | null
+          id?: string
+          interval?: number
+          last_reviewed?: string | null
+          pronunciation_text?: string | null
+          repetitions?: number
+          status?: string
+          updated_at?: string
+          vietnamese_definition?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_deck_id_fkey"
+            columns: ["deck_id"]
+            isOneToOne: false
+            referencedRelation: "decks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_sessions: {
+        Row: {
+          cards_studied: number
+          correct_answers: number
+          deck_id: string
+          id: string
+          session_date: string
+          time_spent: number
+        }
+        Insert: {
+          cards_studied?: number
+          correct_answers?: number
+          deck_id: string
+          id?: string
+          session_date?: string
+          time_spent?: number
+        }
+        Update: {
+          cards_studied?: number
+          correct_answers?: number
+          deck_id?: string
+          id?: string
+          session_date?: string
+          time_spent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_deck_id_fkey"
+            columns: ["deck_id"]
+            isOneToOne: false
+            referencedRelation: "decks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_progress: {
+        Row: {
+          created_at: string
+          id: string
+          last_study_date: string | null
+          streak_days: number
+          total_cards_studied: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_study_date?: string | null
+          streak_days?: number
+          total_cards_studied?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_study_date?: string | null
+          streak_days?: number
+          total_cards_studied?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
