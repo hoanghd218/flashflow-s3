@@ -106,12 +106,20 @@ Return ONLY the JSON object, no additional text.`;
 
       const generatedContent = data.choices[0].message.content.trim();
       
+      // Strip markdown code blocks if present
+      let cleanedContent = generatedContent;
+      if (cleanedContent.startsWith('```json')) {
+        cleanedContent = cleanedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedContent.startsWith('```')) {
+        cleanedContent = cleanedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
       // Try to parse the JSON response
       let flashcardData;
       try {
-        flashcardData = JSON.parse(generatedContent);
+        flashcardData = JSON.parse(cleanedContent);
       } catch (parseError) {
-        console.error('Failed to parse AI response as JSON:', generatedContent);
+        console.error('Failed to parse AI response as JSON:', cleanedContent);
         throw new Error('AI response is not valid JSON');
       }
 
