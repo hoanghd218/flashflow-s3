@@ -16,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import JsonImportCard from '@/components/JsonImportCard';
 import { AICardGenerator } from '@/components/AICardGenerator';
 import { FlashcardViewer } from '@/components/FlashcardViewer';
+import { ImageGenerator } from '@/components/ImageGenerator';
 
 const DeckDetails = () => {
   const { deckId } = useParams();
@@ -428,6 +429,9 @@ const DeckDetails = () => {
           </Button>
           <AICardGenerator deckId={deckId!} onCardCreated={loadDeck} />
           <JsonImportCard deck={deck} onCardsAdded={loadDeck} />
+          <ImageGenerator onImageGenerated={(imageUrl) => {
+            console.log('Generated image URL:', imageUrl);
+          }} />
         </div>
       </div>
 
