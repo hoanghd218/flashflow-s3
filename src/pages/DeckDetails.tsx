@@ -14,6 +14,7 @@ import { Deck, Flashcard } from '@/types/flashcard';
 import { getDeck, createFlashcard, updateFlashcard, deleteFlashcard } from '@/lib/supabaseUtils';
 import { toast } from '@/hooks/use-toast';
 import JsonImportCard from '@/components/JsonImportCard';
+import { AICardGenerator } from '@/components/AICardGenerator';
 
 const DeckDetails = () => {
   const { deckId } = useParams();
@@ -417,6 +418,7 @@ const DeckDetails = () => {
             <Plus className="w-4 h-4" />
             Add New Card
           </Button>
+          <AICardGenerator deckId={deckId!} onCardCreated={loadDeck} />
           <JsonImportCard deck={deck} onCardsAdded={loadDeck} />
         </div>
       </div>
