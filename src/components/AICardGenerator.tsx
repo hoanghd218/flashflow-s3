@@ -46,22 +46,81 @@ export const AICardGenerator: React.FC<AICardGeneratorProps> = ({
 
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-flashcard', {
-        body: {
-          sentence: sentence.trim() || undefined,
-          vocab: vocab.trim(),
+      const prompt = `You are an assistant that generates English learning flashcards for Vietnamese learners.
+
+The input will include:
+A single English word or phrase (vocab): ${vocab.trim()}
+${sentence.trim() ? `Optionally, a full English sentence where the vocab is used: ${sentence.trim()}` : ''}
+
+Your task is to return a JSON object with the following structure:
+
+Required fields:
+front: (string) The English word/phrase itself.
+back: (string) The Vietnamese meaning (short, concise).
+
+Optional fields:
+englishDefinition: (string) Clear and simple English definition, always include the part of speech (e.g., "verb", "noun", "adjective").
+vietnameseDefinition: (string) Full Vietnamese explanation, also state clearly the part of speech (ví dụ: "Động từ chỉ hành động lau, chùi").
+example: (string) An example sentence in English. ${sentence.trim() ? `Always use this sentence as the example: ${sentence.trim()}` : ''}
+exampleTranslation: (string) The Vietnamese translation of the example sentence.
+pronunciationText: (string) IPA pronunciation or simplified pronunciation guide.
+frontImageUrl: (string) A link to an image from the internet that visually represents the word/phrase.
+backImageUrl: (string) Another relevant image (optional).
+
+Constraints:
+Always output in valid JSON format.
+Always include at least the front and back fields.
+If possible, find a relevant image URL online for frontImageUrl (e.g., from Wikimedia or another open source).
+Keep definitions simple and understandable for beginner/intermediate English learners in Vietnam.
+${sentence.trim() ? 'Always use the provided sentence as example.' : ''}
+Always specify the part of speech in both englishDefinition and vietnameseDefinition.
+
+Return ONLY the JSON object, no additional text.`;
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer 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`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Flashcard Generator',
         },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-chat-v3.1:free',
+          messages: [
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000,
+        }),
       });
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OpenRouter API error:', errorText);
+        throw new Error(`OpenRouter API error: ${response.status}`);
       }
 
-      if (data.error) {
-        throw new Error(data.error);
+      const data = await response.json();
+      console.log('OpenRouter response:', data);
+
+      const generatedContent = data.choices[0].message.content.trim();
+      
+      // Try to parse the JSON response
+      let flashcardData;
+      try {
+        flashcardData = JSON.parse(generatedContent);
+      } catch (parseError) {
+        console.error('Failed to parse AI response as JSON:', generatedContent);
+        throw new Error('AI response is not valid JSON');
       }
 
-      setGeneratedCard(data.flashcard);
+      // Validate required fields
+      if (!flashcardData.front || !flashcardData.back) {
+        throw new Error('Generated flashcard missing required fields');
+      }
+
+      setGeneratedCard(flashcardData);
       toast({
         title: "Success",
         description: "AI has generated your flashcard! Review it below.",
