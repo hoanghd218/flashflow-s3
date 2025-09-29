@@ -17,6 +17,7 @@ import JsonImportCard from '@/components/JsonImportCard';
 import { AICardGenerator } from '@/components/AICardGenerator';
 import { FlashcardViewer } from '@/components/FlashcardViewer';
 import { ImageGenerator } from '@/components/ImageGenerator';
+import { AIFlashcardGenerator } from '@/components/AIFlashcardGenerator';
 
 const DeckDetails = () => {
   const { deckId } = useParams();
@@ -341,24 +342,52 @@ const DeckDetails = () => {
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="frontImageUrl">Front Image URL</Label>
+          <div className="space-y-2">
+            <Label htmlFor="frontImageUrl">Front Image URL</Label>
+            <div className="flex gap-2">
               <Input
                 id="frontImageUrl"
                 placeholder="https://example.com/image.jpg"
                 value={formData.frontImageUrl}
                 onChange={handleInputChange('frontImageUrl')}
               />
+              <ImageGenerator
+                mode="standalone"
+                onImageGenerated={(imageUrl) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    frontImageUrl: imageUrl
+                  }));
+                  toast({
+                    title: "Success!",
+                    description: "Image generated and added to front image URL!",
+                  });
+                }}
+              />
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="backImageUrl">Back Image URL</Label>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="backImageUrl">Back Image URL</Label>
+            <div className="flex gap-2">
               <Input
                 id="backImageUrl"
                 placeholder="https://example.com/image.jpg"
                 value={formData.backImageUrl}
                 onChange={handleInputChange('backImageUrl')}
+              />
+              <ImageGenerator
+                mode="standalone"
+                onImageGenerated={(imageUrl) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    backImageUrl: imageUrl
+                  }));
+                  toast({
+                    title: "Success!",
+                    description: "Image generated and added to back image URL!",
+                  });
+                }}
               />
             </div>
           </div>
@@ -422,16 +451,14 @@ const DeckDetails = () => {
           </div>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button onClick={openCreateDialog} className="gap-2">
             <Plus className="w-4 h-4" />
             Add New Card
           </Button>
           <AICardGenerator deckId={deckId!} onCardCreated={loadDeck} />
+          <AIFlashcardGenerator deckId={deckId!} onCardCreated={loadDeck} />
           <JsonImportCard deck={deck} onCardsAdded={loadDeck} />
-          <ImageGenerator onImageGenerated={(imageUrl) => {
-            console.log('Generated image URL:', imageUrl);
-          }} />
         </div>
       </div>
 
