@@ -204,10 +204,10 @@ const FlashCard = ({ card, onRate, isFlipped, onFlip }: FlashCardProps) => {
                   </p>
                 )}
                 
-                {card.backImageUrl && (
+                {(card.frontImageUrl || card.backImageUrl) && (
                   <div className="flex justify-center">
                     <img 
-                      src={getImageSrc(card.backImageUrl)} 
+                      src={getImageSrc(card.frontImageUrl || card.backImageUrl)} 
                       alt={card.back}
                       className="max-w-xs max-h-48 object-cover rounded-lg shadow-md"
                     />
