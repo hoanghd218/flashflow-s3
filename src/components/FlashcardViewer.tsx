@@ -22,14 +22,6 @@ interface FlashcardViewerProps {
 }
 
 export const FlashcardViewer = ({ card, isOpen, onClose }: FlashcardViewerProps) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  // Reset flip state when dialog opens/closes or card changes
-  useEffect(() => {
-    if (isOpen && card) {
-      setIsFlipped(false);
-    }
-  }, [card, isOpen]);
 
   // Helper function to get the correct image
   const getImageSrc = (imageUrl?: string) => {
@@ -61,20 +53,16 @@ export const FlashcardViewer = ({ card, isOpen, onClose }: FlashcardViewerProps)
     }
   };
 
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-  };
 
   if (!card) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
-        setIsFlipped(false);
         onClose();
       }
     }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Flashcard Preview</DialogTitle>
         </DialogHeader>
@@ -105,119 +93,113 @@ export const FlashcardViewer = ({ card, isOpen, onClose }: FlashcardViewerProps)
             </div>
           </div>
 
-          {/* Main Card */}
-          <Card 
-            className={cn(
-              "min-h-[300px] cursor-pointer transition-all duration-300 transform hover:shadow-lg",
-              isFlipped ? "bg-gradient-to-br from-primary/5 to-secondary/5" : "bg-gradient-to-br from-background to-muted/20"
-            )}
-            onClick={handleFlip}
-          >
-            <CardContent className="p-8 h-full flex flex-col justify-center items-center text-center">
-              {!isFlipped ? (
-                // Front side
-                <div className="space-y-6 w-full">
-                  <div className="space-y-4">
-                    <h2 className="text-3xl font-bold text-foreground">{card.front}</h2>
-                    
-                    {card.pronunciationText && (
-                      <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                        <Volume2 className="w-4 h-4" />
-                        <span className="text-lg">/{card.pronunciationText}/</span>
-                      </div>
-                    )}
-                    
-                    {card.englishDefinition && (
-                      <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                        {card.englishDefinition}
-                      </p>
-                    )}
-                    
-                    {card.frontImageUrl && (
-                      <div className="flex justify-center">
-                        <img 
-                          src={getImageSrc(card.frontImageUrl)} 
-                          alt={card.front}
-                          className="max-w-xs max-h-48 object-cover rounded-lg shadow-md"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="pt-6">
-                    <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
-                      <RotateCcw className="w-4 h-4" />
-                      <span>Click to see answer</span>
-                    </div>
-                  </div>
+          {/* Front and Back Cards Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Front Card */}
+            <Card className="bg-gradient-to-br from-background to-muted/20">
+              <CardContent className="p-6">
+                <div className="text-center mb-4">
+                  <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                    Front
+                  </Badge>
                 </div>
-              ) : (
-                // Back side
-                <div className="space-y-6 w-full">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="text-xl text-muted-foreground">{card.front}</div>
-                      <h2 className="text-3xl font-bold text-primary">{card.back}</h2>
-                    </div>
-                    
-                    {card.vietnameseDefinition && (
-                      <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                        {card.vietnameseDefinition}
-                      </p>
-                    )}
-                    
-                    {(card.frontImageUrl || card.backImageUrl) && (
-                      <div className="flex justify-center">
-                        <img 
-                          src={getImageSrc(card.frontImageUrl || card.backImageUrl)} 
-                          alt={card.back}
-                          className="max-w-xs max-h-48 object-cover rounded-lg shadow-md"
-                        />
-                      </div>
-                    )}
-                    
-                    {card.example && (
-                      <div className="space-y-2 max-w-lg mx-auto">
-                        <div className="text-sm font-medium text-muted-foreground">Example:</div>
-                        <blockquote className="text-base italic border-l-4 border-primary/30 pl-4">
-                          {card.example}
-                        </blockquote>
-                        {card.exampleTranslation && (
-                          <div className="text-sm text-muted-foreground">
-                            {card.exampleTranslation}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    {card.audioUrl && (
-                      <div className="flex justify-center">
-                        <audio controls className="w-full max-w-xs">
-                          <source src={card.audioUrl} type="audio/mpeg" />
-                          Your browser does not support audio playback.
-                        </audio>
-                      </div>
-                    )}
-                  </div>
+                
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold text-foreground text-center">{card.front}</h2>
                   
-                  <div className="pt-6">
+                  {card.pronunciationText && (
                     <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                      <RotateCcw className="w-4 h-4" />
-                      <span>Click to see front</span>
+                      <Volume2 className="w-4 h-4" />
+                      <span className="text-base">/{card.pronunciationText}/</span>
                     </div>
-                  </div>
+                  )}
+                  
+                  {card.englishDefinition && (
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-sm font-medium text-muted-foreground mb-1">📖 English Definition:</p>
+                      <p className="text-sm">{card.englishDefinition}</p>
+                    </div>
+                  )}
+                  
+                  {card.frontImageUrl && (
+                    <div className="flex justify-center">
+                      <img 
+                        src={getImageSrc(card.frontImageUrl)} 
+                        alt={card.front}
+                        className="max-w-full max-h-40 object-cover rounded-lg shadow-md"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Flip Button */}
-          <div className="flex justify-center">
-            <Button onClick={handleFlip} variant="outline" className="gap-2">
-              <RotateCcw className="w-4 h-4" />
-              {isFlipped ? 'Show Front' : 'Show Back'}
-            </Button>
+            {/* Back Card */}
+            <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
+              <CardContent className="p-6">
+                <div className="text-center mb-4">
+                  <Badge className="bg-green-100 text-green-800 border-green-200">
+                    Back
+                  </Badge>
+                </div>
+                
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold text-primary text-center">{card.back}</h2>
+                  
+                  {card.vietnameseDefinition && (
+                    <div className="p-3 bg-accent rounded-lg">
+                      <p className="text-sm font-medium text-muted-foreground mb-1">🇻🇳 Nghĩa tiếng Việt:</p>
+                      <p className="text-sm">{card.vietnameseDefinition}</p>
+                    </div>
+                  )}
+                  
+                  {(card.frontImageUrl || card.backImageUrl) && (
+                    <div className="flex justify-center">
+                      <img 
+                        src={getImageSrc(card.frontImageUrl || card.backImageUrl)} 
+                        alt={card.back}
+                        className="max-w-full max-h-40 object-cover rounded-lg shadow-md"
+                      />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
+
+          {/* Example Section - Full Width */}
+          {card.example && (
+            <Card className="bg-card-front">
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-muted-foreground">💭 Example:</div>
+                  <blockquote className="text-base italic border-l-4 border-primary/30 pl-4">
+                    {card.example}
+                  </blockquote>
+                  {card.exampleTranslation && (
+                    <div className="text-sm text-muted-foreground pl-4">
+                      {card.exampleTranslation}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Audio Section */}
+          {card.audioUrl && (
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="text-sm font-medium text-muted-foreground mb-3">🔊 Audio Pronunciation:</div>
+                  <audio controls className="w-full max-w-xs mx-auto">
+                    <source src={card.audioUrl} type="audio/mpeg" />
+                    Your browser does not support audio playback.
+                  </audio>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </DialogContent>
     </Dialog>
