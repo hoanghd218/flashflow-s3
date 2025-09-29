@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, BookOpen, CheckCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, CheckCircle, RotateCcw, Trophy } from 'lucide-react';
 import { Deck, Flashcard, DifficultyRating } from '@/types/flashcard';
 import { getNewCards } from '@/lib/spacedRepetition';
 import EnhancedFlashCard from '@/components/EnhancedFlashCard';
@@ -17,6 +17,7 @@ const Study = () => {
   const [studyCards, setStudyCards] = useState<Flashcard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isSessionComplete, setIsSessionComplete] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     studied: 0,
     correct: 0,
@@ -128,7 +129,49 @@ const Study = () => {
       });
     }
     
-    navigate('/decks');
+    setIsSessionComplete(true);
+  };
+
+  const restartSession = async () => {
+    if (!deckId || !deck) return;
+    
+    // Reset session state
+    setIsSessionComplete(false);
+    setCurrentCardIndex(0);
+    setIsFlipped(false);
+    setSessionStats({
+      studied: 0,
+      correct: 0,
+      startTime: new Date()
+    });
+    
+    // Reload study cards
+    try {
+      const reviewCards = await getCardsForReview();
+      const deckReviewCards = reviewCards.filter(card => 
+        deck.cards.some(deckCard => deckCard.id === card.id)
+      );
+      const newCards = getNewCards(deck.cards, 10);
+      const cardsToStudy = [...deckReviewCards, ...newCards];
+      
+      if (cardsToStudy.length === 0) {
+        toast({
+          title: "All caught up!",
+          description: "No more cards to study right now.",
+        });
+        navigate('/decks');
+        return;
+      }
+      
+      setStudyCards(cardsToStudy);
+    } catch (error) {
+      console.error('Error restarting session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to restart study session",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleKeyPress = (e: KeyboardEvent) => {
@@ -167,6 +210,52 @@ const Study = () => {
           <CardContent className="p-8 text-center">
             <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">Loading study session...</h3>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show completion screen
+  if (isSessionComplete) {
+    const sessionDuration = Math.round((new Date().getTime() - sessionStats.startTime.getTime()) / 60000);
+    const accuracy = sessionStats.studied > 0 ? Math.round((sessionStats.correct / sessionStats.studied) * 100) : 0;
+    
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Card className="text-center">
+          <CardContent className="p-8">
+            <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Session Complete! 🎉</h2>
+            <p className="text-muted-foreground mb-6">
+              Great job! You've completed your study session.
+            </p>
+            
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">{sessionStats.studied}</div>
+                <div className="text-sm text-muted-foreground">Cards Studied</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                <div className="text-sm text-muted-foreground">Accuracy</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{sessionDuration}</div>
+                <div className="text-sm text-muted-foreground">Minutes</div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 justify-center">
+              <Button onClick={restartSession} className="gap-2">
+                <RotateCcw className="w-4 h-4" />
+                Study Again
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/decks')} className="gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Back to Decks
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
