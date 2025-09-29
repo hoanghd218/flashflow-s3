@@ -31,6 +31,25 @@ export const AICardGenerator: React.FC<AICardGeneratorProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
+  const searchUnsplash = async (query: string) => {
+    const UNSPLASH_KEY = 'NRBXC6RJ5NmDcoJ7JUxmW1cXLijU4OTDBLe1UlEk0D8';
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1`;
+    try {
+      const res = await fetch(url, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` } });
+      const data = await res.json();
+      const first = data.results?.[0];
+      return first ? {
+        imageUrl: first.urls.small,
+        alt: first.alt_description || query,
+        author: first.user?.name,
+        source: first.links?.html
+      } : null;
+    } catch (error) {
+      console.error('Error fetching from Unsplash:', error);
+      return null;
+    }
+  };
+
   const handleGenerate = async () => {
     if (!vocab.trim()) {
       toast({
@@ -61,13 +80,10 @@ vietnameseDefinition: (string) Full Vietnamese explanation, also state clearly t
 example: (string) An example sentence in English. ${sentence.trim() ? `Always use this sentence as the example: ${sentence.trim()}` : ''}
 exampleTranslation: (string) The Vietnamese translation of the example sentence.
 pronunciationText: (string) IPA pronunciation or simplified pronunciation guide.
-frontImageUrl: (string) A link to an image from the internet that visually represents the word/phrase.
-backImageUrl: (string) Another relevant image (optional).
 
 Constraints:
 Always output in valid JSON format.
 Always include at least the front and back fields.
-If possible, find a relevant image URL online for frontImageUrl (e.g., from Wikimedia or another open source).
 Keep definitions simple and understandable for beginner/intermediate English learners in Vietnam.
 ${sentence.trim() ? 'Always use the provided sentence as example.' : ''}
 Always specify the part of speech in both englishDefinition and vietnameseDefinition.
@@ -123,6 +139,12 @@ Return ONLY the JSON object, no additional text.`;
       // Validate required fields
       if (!flashcardData.front || !flashcardData.back) {
         throw new Error('Generated flashcard missing required fields');
+      }
+
+      // Search for image using Unsplash
+      const imageData = await searchUnsplash(flashcardData.front);
+      if (imageData) {
+        flashcardData.frontImageUrl = imageData.imageUrl;
       }
 
       // Automatically create the flashcard
