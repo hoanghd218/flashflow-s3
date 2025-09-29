@@ -13,6 +13,7 @@ import { ArrowLeft, Plus, Edit, Trash2, BookOpen, Volume2 } from 'lucide-react';
 import { Deck, Flashcard } from '@/types/flashcard';
 import { getDeck, createFlashcard, updateFlashcard, deleteFlashcard } from '@/lib/supabaseUtils';
 import { toast } from '@/hooks/use-toast';
+import JsonImportCard from '@/components/JsonImportCard';
 
 const DeckDetails = () => {
   const { deckId } = useParams();
@@ -411,10 +412,13 @@ const DeckDetails = () => {
           </div>
         </div>
         
-        <Button onClick={openCreateDialog} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Add New Card
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={openCreateDialog} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add New Card
+          </Button>
+          <JsonImportCard deck={deck} onCardsAdded={loadDeck} />
+        </div>
       </div>
 
       {/* Stats */}
