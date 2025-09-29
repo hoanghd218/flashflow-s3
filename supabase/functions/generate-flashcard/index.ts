@@ -66,7 +66,7 @@ Return ONLY the JSON object, no additional text.`;
         'X-Title': 'Flashcard Generator',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
+        model: 'deepseek/deepseek-chat-v3.1:free',
         messages: [
           { role: 'user', content: prompt }
         ],
