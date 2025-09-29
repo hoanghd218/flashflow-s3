@@ -6,6 +6,7 @@ import { Deck } from '@/types/flashcard';
 import { getDeckStats, isCardOverdue } from '@/lib/spacedRepetition';
 import { Link } from 'react-router-dom';
 import AddVocabCard from './AddVocabCard';
+import DeckActions from './DeckActions';
 
 interface DeckCardProps {
   deck: Deck;
@@ -26,7 +27,7 @@ const DeckCard = ({ deck, onDeckUpdate }: DeckCardProps) => {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <CardTitle className="text-lg line-clamp-1">{deck.name}</CardTitle>
-          <div className="flex gap-2 ml-2">
+          <div className="flex items-center gap-2 ml-2">
             {hasOverdue && (
               <Badge variant="destructive" className="gap-1">
                 <AlertTriangle className="w-3 h-3" />
@@ -38,6 +39,7 @@ const DeckCard = ({ deck, onDeckUpdate }: DeckCardProps) => {
                 {stats.dueToday} due
               </Badge>
             )}
+            <DeckActions deck={deck} onDeckUpdate={onDeckUpdate || (() => {})} />
           </div>
         </div>
         {deck.description && (
