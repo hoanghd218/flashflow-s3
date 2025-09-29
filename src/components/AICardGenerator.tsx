@@ -11,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -30,8 +29,6 @@ export const AICardGenerator: React.FC<AICardGeneratorProps> = ({
   const [sentence, setSentence] = useState('');
   const [vocab, setVocab] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedCard, setGeneratedCard] = useState<Partial<Flashcard> | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
@@ -128,11 +125,8 @@ Return ONLY the JSON object, no additional text.`;
         throw new Error('Generated flashcard missing required fields');
       }
 
-      setGeneratedCard(flashcardData);
-      toast({
-        title: "Success",
-        description: "AI has generated your flashcard! Review it below.",
-      });
+      // Automatically create the flashcard
+      await createFlashcardFromAI(flashcardData);
     } catch (error) {
       console.error('Error generating flashcard:', error);
       toast({
@@ -145,37 +139,33 @@ Return ONLY the JSON object, no additional text.`;
     }
   };
 
-  const handleCreateCard = async () => {
-    if (!generatedCard) return;
-
-    setIsCreating(true);
+  const createFlashcardFromAI = async (flashcardData: Partial<Flashcard>) => {
     try {
       const { error } = await supabase
         .from('flashcards')
         .insert([{
           deck_id: deckId,
-          front: generatedCard.front,
-          back: generatedCard.back,
-          english_definition: generatedCard.englishDefinition,
-          vietnamese_definition: generatedCard.vietnameseDefinition,
-          example: generatedCard.example,
-          example_translation: generatedCard.exampleTranslation,
-          pronunciation_text: generatedCard.pronunciationText,
-          front_image_url: generatedCard.frontImageUrl,
-          back_image_url: generatedCard.backImageUrl,
+          front: flashcardData.front,
+          back: flashcardData.back,
+          english_definition: flashcardData.englishDefinition,
+          vietnamese_definition: flashcardData.vietnameseDefinition,
+          example: flashcardData.example,
+          example_translation: flashcardData.exampleTranslation,
+          pronunciation_text: flashcardData.pronunciationText,
+          front_image_url: flashcardData.frontImageUrl,
+          back_image_url: flashcardData.backImageUrl,
         }]);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Flashcard created successfully!",
+        description: "AI flashcard created successfully!",
       });
 
-      // Reset form
+      // Reset form and close dialog
       setSentence('');
       setVocab('');
-      setGeneratedCard(null);
       setIsOpen(false);
       onCardCreated();
     } catch (error) {
@@ -185,15 +175,12 @@ Return ONLY the JSON object, no additional text.`;
         description: "Failed to create flashcard. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsCreating(false);
     }
   };
 
   const resetForm = () => {
     setSentence('');
     setVocab('');
-    setGeneratedCard(null);
   };
 
   return (
@@ -246,93 +233,15 @@ Return ONLY the JSON object, no additional text.`;
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                AI is generating your flashcard...
+                AI is generating and creating your flashcard...
               </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Generate Flashcard
+                Generate & Create Flashcard
               </>
             )}
           </Button>
-
-          {generatedCard && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-3">Generated Flashcard Preview</h3>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl">{generatedCard.front}</CardTitle>
-                  <CardDescription>{generatedCard.back}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {generatedCard.englishDefinition && (
-                    <div>
-                      <strong>English Definition:</strong>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {generatedCard.englishDefinition}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {generatedCard.vietnameseDefinition && (
-                    <div>
-                      <strong>Vietnamese Definition:</strong>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {generatedCard.vietnameseDefinition}
-                      </p>
-                    </div>
-                  )}
-
-                  {generatedCard.example && (
-                    <div>
-                      <strong>Example:</strong>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {generatedCard.example}
-                      </p>
-                      {generatedCard.exampleTranslation && (
-                        <p className="text-sm text-muted-foreground italic">
-                          {generatedCard.exampleTranslation}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {generatedCard.pronunciationText && (
-                    <div>
-                      <strong>Pronunciation:</strong>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {generatedCard.pronunciationText}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <div className="flex gap-2 mt-4">
-                <Button 
-                  onClick={handleCreateCard}
-                  disabled={isCreating}
-                  className="flex-1"
-                >
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Flashcard'
-                  )}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setGeneratedCard(null)}
-                  disabled={isCreating}
-                >
-                  Generate Again
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>
