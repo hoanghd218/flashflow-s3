@@ -9,12 +9,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Plus, Edit, Trash2, BookOpen, Volume2 } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, BookOpen, Volume2, Eye } from 'lucide-react';
 import { Deck, Flashcard } from '@/types/flashcard';
 import { getDeck, createFlashcard, updateFlashcard, deleteFlashcard } from '@/lib/supabaseUtils';
 import { toast } from '@/hooks/use-toast';
 import JsonImportCard from '@/components/JsonImportCard';
 import { AICardGenerator } from '@/components/AICardGenerator';
+import { FlashcardViewer } from '@/components/FlashcardViewer';
 
 const DeckDetails = () => {
   const { deckId } = useParams();
@@ -22,8 +23,10 @@ const DeckDetails = () => {
   const [deck, setDeck] = useState<Deck | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
+  const [viewingCard, setViewingCard] = useState<Flashcard | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     front: '',
     back: '',
@@ -91,6 +94,11 @@ const DeckDetails = () => {
   const openCreateDialog = () => {
     resetForm();
     setIsCreateDialogOpen(true);
+  };
+
+  const openViewDialog = (card: Flashcard) => {
+    setViewingCard(card);
+    setIsViewDialogOpen(true);
   };
 
   const openEditDialog = (card: Flashcard) => {
@@ -528,16 +536,25 @@ const DeckDetails = () => {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-1 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditDialog(card)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <AlertDialog>
+                       <TableCell className="text-right">
+                         <div className="flex gap-1 justify-end">
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => openViewDialog(card)}
+                             title="View card"
+                           >
+                             <Eye className="w-4 h-4" />
+                           </Button>
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => openEditDialog(card)}
+                             title="Edit card"
+                           >
+                             <Edit className="w-4 h-4" />
+                           </Button>
+                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="sm">
                                 <Trash2 className="w-4 h-4" />
@@ -614,6 +631,16 @@ const DeckDetails = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Flashcard Viewer Dialog */}
+      <FlashcardViewer
+        card={viewingCard}
+        isOpen={isViewDialogOpen}
+        onClose={() => {
+          setIsViewDialogOpen(false);
+          setViewingCard(null);
+        }}
+      />
     </div>
   );
 };
