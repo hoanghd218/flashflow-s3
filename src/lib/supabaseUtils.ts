@@ -141,12 +141,17 @@ export async function getDeck(deckId: string): Promise<Deck | null> {
 }
 
 export async function createDeck(name: string, description?: string, color?: string): Promise<Deck> {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const { data, error } = await supabase
     .from('decks')
     .insert({
       name,
       description: description || null,
       color: color || null,
+      user_id: user.id,
     })
     .select()
     .single();
@@ -272,6 +277,10 @@ export async function getNewCards(limit: number = 10): Promise<Flashcard[]> {
 }
 
 export async function createStudySession(sessionData: Omit<StudySession, 'date'> & { date?: string }): Promise<void> {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const { error } = await supabase
     .from('study_sessions')
     .insert({
@@ -280,6 +289,7 @@ export async function createStudySession(sessionData: Omit<StudySession, 'date'>
       correct_answers: sessionData.correctAnswers,
       time_spent: sessionData.timeSpent,
       session_date: sessionData.date || new Date().toISOString(),
+      user_id: user.id,
     });
 
   if (error) throw error;

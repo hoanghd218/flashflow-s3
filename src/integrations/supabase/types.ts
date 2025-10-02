@@ -22,6 +22,7 @@ export type Database = {
           id: string
           name: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           color?: string | null
@@ -30,6 +31,7 @@ export type Database = {
           id?: string
           name: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           color?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -126,6 +129,7 @@ export type Database = {
           id: string
           session_date: string
           time_spent: number
+          user_id: string | null
         }
         Insert: {
           cards_studied?: number
@@ -134,6 +138,7 @@ export type Database = {
           id?: string
           session_date?: string
           time_spent?: number
+          user_id?: string | null
         }
         Update: {
           cards_studied?: number
@@ -142,6 +147,7 @@ export type Database = {
           id?: string
           session_date?: string
           time_spent?: number
+          user_id?: string | null
         }
         Relationships: [
           {

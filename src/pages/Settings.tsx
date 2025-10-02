@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Moon, Sun, Globe, Volume2, Download, Upload, Trash2 } from 'lucide-react';
+import { Moon, Sun, Globe, Volume2, Download, Upload, Trash2, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Settings {
   theme: 'light' | 'dark' | 'system';
@@ -19,6 +21,7 @@ interface Settings {
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
   const [settings, setSettings] = useState<Settings>({
     theme: 'system',
     language: 'en',
@@ -116,6 +119,19 @@ const Settings = () => {
         description: "Please refresh the page",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to log out',
+        variant: 'destructive',
+      });
+    } else {
+      navigate('/auth');
     }
   };
 
@@ -298,6 +314,22 @@ const Settings = () => {
               Clear
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Account - Mobile Logout */}
+      <Card className="md:hidden">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LogOut className="w-5 h-5" />
+            Account
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handleLogout} variant="destructive" className="w-full gap-2">
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
         </CardContent>
       </Card>
 

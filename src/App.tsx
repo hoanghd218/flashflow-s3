@@ -10,8 +10,10 @@ import DeckDetails from "./pages/DeckDetails";
 import Study from "./pages/Study";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Navigation from "./components/Navigation";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -22,22 +24,32 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen bg-background">
-            <div className="flex">
-              <Navigation />
-              <main className="flex-1 p-4 pb-20 md:pb-4 md:ml-64">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/decks" element={<Decks />} />
-                  <Route path="/decks/:deckId" element={<DeckDetails />} />
-                  <Route path="/study/:deckId?" element={<Study />} />
-                  <Route path="/progress" element={<Progress />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-            </div>
-          </div>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route
+              path="*"
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-background">
+                    <div className="flex">
+                      <Navigation />
+                      <main className="flex-1 p-4 pb-20 md:pb-4 md:ml-64">
+                        <Routes>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/decks" element={<Decks />} />
+                          <Route path="/decks/:deckId" element={<DeckDetails />} />
+                          <Route path="/study/:deckId?" element={<Study />} />
+                          <Route path="/progress" element={<Progress />} />
+                          <Route path="/settings" element={<Settings />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </main>
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>

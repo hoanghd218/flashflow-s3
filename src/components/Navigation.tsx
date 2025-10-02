@@ -1,9 +1,27 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, BarChart3, Settings, Brain } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, BookOpen, BarChart3, Settings, Brain, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 const Navigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to log out',
+        variant: 'destructive',
+      });
+    } else {
+      navigate('/auth');
+    }
+  };
 
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
@@ -43,6 +61,18 @@ const Navigation = () => {
               <span className="text-xs md:text-sm font-medium">{label}</span>
             </Link>
           ))}
+        </div>
+
+        {/* Logout Button - Desktop only */}
+        <div className="hidden md:block p-4 border-t border-border">
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="text-sm font-medium">Logout</span>
+          </Button>
         </div>
       </div>
     </nav>
