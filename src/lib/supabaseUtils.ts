@@ -288,16 +288,21 @@ export async function createStudySession(sessionData: Omit<StudySession, 'date'>
 // ---------- USER PROGRESS OPERATIONS ----------
 
 export async function getUserProgress(): Promise<UserProgress> {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const { data, error } = await supabase
     .from('user_progress')
     .select('*')
+    .eq('user_id', user.id)
     .single();
 
   if (error) {
-    // If no progress exists, create one
+    // If no progress exists, create one for the current user
     const { data: newData, error: createError } = await supabase
       .from('user_progress')
-      .insert({})
+      .insert({ user_id: user.id })
       .select()
       .single();
     
@@ -336,6 +341,10 @@ export async function getUserProgress(): Promise<UserProgress> {
 }
 
 export async function updateUserProgress(updates: Partial<UserProgress>): Promise<void> {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   const dbUpdates: any = {};
   
   if (updates.totalCardsStudied !== undefined) dbUpdates.total_cards_studied = updates.totalCardsStudied;
@@ -345,7 +354,7 @@ export async function updateUserProgress(updates: Partial<UserProgress>): Promis
   const { error } = await supabase
     .from('user_progress')
     .update(dbUpdates)
-    .eq('id', (await supabase.from('user_progress').select('id').single()).data?.id);
+    .eq('user_id', user.id);
 
   if (error) throw error;
 }
